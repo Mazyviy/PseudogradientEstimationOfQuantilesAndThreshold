@@ -15,8 +15,13 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     setWindowTitle("Pseudogradient estimation of quantiles and threshold");
+
     bar_chart_1 = new QCPBars(ui->widget->xAxis, ui->widget->yAxis);
     bar_chart_2 = new QCPBars(ui->widget_2->xAxis, ui->widget_2->yAxis);
+
+    ui->widget->xAxis->setLabel("Frequency histogram");
+    ui->widget_2->xAxis->setLabel("Distribution function");
+
     p_level=ui->doubleSpinBox->value();
     itr=ui->spinBox->value();
     slowdown=ui->doubleSpinBox_2->value();
@@ -44,14 +49,8 @@ void MainWindow::on_pushButton_clicked()
         }
     std::sort(array_sort.begin(),array_sort.end());
 
-    for(int i=0;i<array_range.size();i++)
-    {
-         array_range[i]=0;
-         array_frequency_sum[i]=0;
-         array_frequency[i]=0;
-    }
 
-     double increment=(abs(array_sort[0])+array_sort[array_sort.size()-1])/(array_range.size()/2);
+    double increment=(abs(array_sort[0])+array_sort[array_sort.size()-1])/(array_range.size()/2);
      array_range[0]=array_sort[0];
      for(int i=1;i<array_range.size();i++)
      {
@@ -96,7 +95,6 @@ void MainWindow::on_pushButton_clicked()
      }
 
     ui->widget->clearGraphs();
-    ui->widget->xAxis->setLabel("Frequency histogram");
     ui->widget->xAxis->setRange(array_range[0],array_range[array_range.size()-1]);
     ui->widget->yAxis->setRange(-(*std::max_element(array_frequency.begin(),array_frequency.end())/5), *std::max_element(array_frequency.begin(),array_frequency.end())*2);
     bar_chart_1->data()->clear();
@@ -107,7 +105,6 @@ void MainWindow::on_pushButton_clicked()
     ui->widget->replot();
 
     ui->widget_2->clearGraphs();
-    ui->widget_2->xAxis->setLabel("Distribution function");
     ui->widget_2->xAxis->setRange(array_range[0],array_range[array_range.size()-1]);
     ui->widget_2->yAxis->setRange(-0.1,1.1);
     bar_chart_2->data()->clear();
@@ -163,6 +160,19 @@ void MainWindow::on_pushButton_3_clicked()
     }
 
     int k=1;
+
+    ui->widget->addGraph();
+    ui->widget->addGraph();
+    ui->widget_2->addGraph();
+    ui->widget_2->addGraph();
+    ui->widget->graph(1)->setPen(QPen(QColor(0, 0, 0)));
+    ui->widget_2->graph(1)->setPen(QPen(QColor(0, 0, 0)));
+    QPen pen;
+    pen.setStyle(Qt::DashLine);
+    pen.setColor(QColor(220, 20, 60));
+    ui->widget->graph(2)->setPen(pen);
+    ui->widget_2->graph(2)->setPen(pen);
+
     for(int i=0;i<itr;i++)
     {
         if(k==array_x.size()) k=0;
@@ -170,27 +180,19 @@ void MainWindow::on_pushButton_3_clicked()
         if(array_x[k]<alfa) alfa-=nu[i]*(1-p_level);
         k++;
         x[0]=x[1]=array_x[i];
-        ui->widget->addGraph();
+
         ui->widget->graph(1)->setData(x,y);
-        ui->widget->graph(1)->setPen(QPen(QColor(0, 0, 0)));
         ui->widget->replot();
-        ui->widget_2->addGraph();
         ui->widget_2->graph(1)->setData(x,y);
-        ui->widget_2->graph(1)->setPen(QPen(QColor(0, 0, 0)));
         ui->widget_2->replot();
 
         x[0]=x[1]=alfa;
-        QPen pen;
-        pen.setColor(QColor(220, 20, 60));
-        pen.setStyle(Qt::DashLine);
-        ui->widget->addGraph();
+
         ui->widget->graph(2)->setData(x,y);
-        ui->widget->graph(2)->setPen(pen);
         ui->widget->replot();
-        ui->widget_2->addGraph();
         ui->widget_2->graph(2)->setData(x,y);
-        ui->widget_2->graph(2)->setPen(pen);
         ui->widget_2->replot();
+
         Sleep(slowdown*1000);
     }
 }
